@@ -4,8 +4,16 @@
 
 <script>
 	export default {
+		globalData: {
+			today: ''
+		},
 		onLaunch: function() {
-			console.log('App Launch')
+			const year = new Date().getFullYear();
+			const month = new Date().getMonth() + 1;
+			const day = new Date().getDate();
+			this.globalData.today = `${year}-${month<10?'0':''}${month}-${day<10?'0':''}${day}`;
+
+			console.log('App Launch', this.globalData);
 		},
 		onShow: function() {
 			console.log('App Show')
@@ -15,4 +23,3 @@
 		}
 	}
 </script>
-
