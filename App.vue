@@ -4,9 +4,6 @@
 
 <script>
 	export default {
-		globalData: {
-			today: ''
-		},
 		onLaunch: function() {
 			const year = new Date().getFullYear();
 			const month = new Date().getMonth() + 1;

@@ -23,7 +23,24 @@
 			"style": {
 				"enablePullDownRefresh": true
 			}
-
+		},
+		{
+			"path": "pages/video/livestream",
+			"style": {
+				"enablePullDownRefresh": true
+			}
+		},
+		{
+			"path": "pages/video/plate",
+			"style": {
+				"enablePullDownRefresh": true
+			}
+		},
+		{
+			"path": "pages/video/living",
+			"style": {
+				"enablePullDownRefresh": true
+			}
 		}
 	],
 	"globalStyle": {
@@ -50,7 +67,7 @@
 				"text": "NBA"
 			},
 			{
-				"pagePath": "pages/video/index",
+				"pagePath": "pages/video/livestream",
 				"iconPath": "static/uview/example/js.png",
 				"selectedIconPath": "static/uview/example/js_select.png",
 				"text": "视频"

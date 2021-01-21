@@ -11,6 +11,9 @@
 				
 			}
 		},
+		onLoad({id}) {
+			console.log(id);
+		},
 		methods: {
 			
 		}

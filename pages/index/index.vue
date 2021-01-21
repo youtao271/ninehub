@@ -18,7 +18,7 @@
 							<view class="match-team-stat">
 								<view v-if="item.matchPeriod==3">
 									<view class="match-team-status">
-										<u-button disabled shape="circle">比赛延期</u-button>
+										<u-button disabled type="warning" shape="circle">比赛延期</u-button>
 									</view>
 								</view>
 								<view v-else>
@@ -95,12 +95,13 @@
 				console.log(this.finished);
 				this.finished && clearInterval(timer);
 				const db = uniCloud.database();
-				const { result } = await db.collection('nba_match_list').where('date == "'+this.date+'" && cid == "100000"').get();
+				const { result } = await db.collection('nba_match_list').where('date == "'+this.date+'" && cid == "100000"')
+				.orderBy('_id').get();
 				console.log(result.data);
 				this.matches = result.data;
 			},
 			getTime: date => {
-				return date.split(' ')[1];
+				return date.split(' ')[1].substr(0, 5);
 			},
 			live: (status, id) => {
 				console.log(status);
