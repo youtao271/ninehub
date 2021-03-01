@@ -23,11 +23,11 @@
 								</view>
 								<view v-else>
 									<view class="match-team-goal">{{`${item.awayGoal} : ${item.homeGoal}`}}</view>
-									<view v-if="item.matchPeriod === '2'" class="match-team-status">
+									<view v-if="item.matchPeriod === '3'" class="match-team-status">
 										<u-button disabled shape="circle">比赛结束</u-button>
 									</view>
 									<view v-else class="match-team-status">
-										<u-button type="primary" shape="circle" @click="live(item.matchPeriod, item.id)">视频直播</u-button>
+										<u-button type="primary" shape="circle" @click="live(item.matchPeriod, item.id, item.cid, item._id)">视频直播</u-button>
 									</view>
 								</view>
 							</view>
@@ -103,11 +103,11 @@
 			getTime: date => {
 				return date.split(' ')[1].substr(0, 5);
 			},
-			live: (status, id) => {
-				console.log(status);
-				if(status === '2' || status === '3')	return;
+			live: (status, id, cid, _id) => {
+				console.log(status, cid, _id);
+				// if(status === '2' || status === '3')	return;
 				uni.navigateTo({
-					url: '/pages/nba/live?id='+id
+					url: `/pages/nba/live?id=${id}&mid=${cid}:${_id}`
 				})
 			}
 		}
