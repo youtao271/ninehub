@@ -1,44 +1,40 @@
 <template>
 	<view>
-		<u-card v-for="(item, index) in matches" :key="index" :show-head="false">
-			<view class="match-body" slot="body">
-				<!-- <navigator :url="'/pages/play/play?id='+item.id">				 -->
-					<view class="match-title">{{`${getTime(item.startTime)} NBA${item.matchType==2?'常规赛':'季后赛'}`}}</view>
-					<u-row>
-						<u-col span="3">
-							<view class="match-team">
-								<u-image mode="aspectFit" width="100%" height="120" :src="item.awayImg"></u-image>
-								<text class="match-team-name">{{item.away}}</text>
-							</view>
-						</u-col>
-						<u-col span="6">
-							<view class="match-team-stat">
-								<view v-if="item.matchPeriod==3">
-									<view class="match-team-status">
-										<u-button disabled shape="circle">比赛延期</u-button>
-									</view>
-								</view>
-								<view v-else>
-									<view class="match-team-goal">{{`${item.awayGoal} : ${item.homeGoal}`}}</view>
-									<view v-if="item.matchPeriod === '2'" class="match-team-status">
-										<u-button disabled shape="circle">比赛结束</u-button>
-									</view>
-									<view v-else class="match-team-status">
-										<u-button type="primary" shape="circle" @click="live(item.matchPeriod, item.id)">视频直播</u-button>
-									</view>
-								</view>
-							</view>
-						</u-col>
-						<u-col span="3">
-							<view class="match-team">
-								<u-image mode="aspectFit" width="100%" height="120" :src="item.homeImg"></u-image>
-								<text class="match-team-name">{{item.home}}</text>
-							</view>
-						</u-col>
-					</u-row>				
-				<!-- </navigator> -->
-			</view>
-		</u-card>
+		<view class="status_bar" />
+		<u-tabs :list="tabs" :current="tabIndex" @change="changeTab" />
+		<u-search 
+			placeholder="请输入关键词" 
+			v-model="keyword" 
+			margin="12rpx 20rpx 4rpx"
+			bg-color="#ffffff"
+			:action-style="{color: '#409eff'}"
+			@custom="search" 
+			@search="search"
+		/>
+		<u-loading :show="loaded" size="40" />
+		<u-waterfall v-model="list" ref="uWaterfall" add-time="10">
+			<template v-slot:left="{leftList}">
+				<view class="item" v-for="(item, index) in leftList" :key="index" @click="play(item.vod_id)">
+					<u-tag v-if="item.vod_remarks" class="tag-banner" :text="item.vod_remarks" type="success" mode="dark" />
+					<u-lazy-load border-radius="10" :image="pic" :index="index"></u-lazy-load>
+					<!-- <u-lazy-load border-radius="10" :image="item.vod_pic" :index="index"></u-lazy-load> -->
+					<view class="item-title">
+						{{item.vod_name}}
+					</view>
+				</view>
+			</template>
+			<template v-slot:right="{rightList}">
+				<view class="item" v-for="(item, index) in rightList" :key="index" @click="play(item.vod_id)">
+					<u-tag v-if="item.vod_remarks" class="tag-banner" :text="item.vod_remarks" type="success" mode="dark" />
+					<u-lazy-load border-radius="10" :image="pic" :index="index"></u-lazy-load>
+					<!-- <u-lazy-load border-radius="10" :image="item.vod_pic" :index="index"></u-lazy-load> -->
+					<view class="item-title">
+						{{item.vod_name}}
+					</view>
+				</view>
+			</template>
+		</u-waterfall>
+		<u-loadmore v-if="!loaded" :status="status" :icon-type="iconType" :load-text="loadText" />
 	</view>
 </template>
 
@@ -47,78 +43,126 @@
 	export default {
 		data() {
 			return {
-				title: 'Hello',
-				matches: [],
-				date: ''
+				pic: 'https://cdnvideo.sinovision.net/attachments/video/20210310/2012/1615425160-8176.jpg',
+				loaded: true,
+				status: 'loadmore',
+				iconType: 'circle',
+				loadText: {
+					loadmore: '上拉或点击加载更多',
+					loading: '努力加载中',
+					nomore: '我是有底线的'
+				},
+				keyword: '',
+				tid: '',
+				page: 1,
+				list: [],
+				tabs: [
+					{name: '最新'},
+					{name: '电影'},
+					{name: '电视剧'},
+					{name: '动漫'},
+					{name: '综艺'}
+				],
+				tabIndex: 0,
+				aliCloud: null
 			}
 		},
 		async onLoad() {
-			this.setDate();
 			await this.getData();
+			this.loaded = false;
 		},
-		onShow() {
-			timer = setInterval(this.getData, 30000);
-			console.log(this.date);
-			// this.setDate(-1);
+		async onShow() {
+			console.log('show');
 		},
 		onHide() {
-			clearInterval(timer);
+
 		},
 		async onPullDownRefresh() {
+			this.page = 1;
+			this.$refs.uWaterfall.clear();
 			await this.getData();
 			uni.stopPullDownRefresh();
 		},
-		computed: {
-			finished: function() {
-				if(!this.matches.length)	return false;
-				return this.matches.every(item => item.matchPeriod==='3' || item.matchPeriod==='2' )
+		async onReachBottom() {
+			if(this.status !== 'nomore'){
+				this.status = 'loading';
+				await this.loading();
 			}
 		},
 		methods: {
-			setDate: function(flag=0) {
-				const date = flag ? new Date(this.date) : new Date();
-				date.setDate(date.getDate() + flag);
-
-				const year = date.getFullYear();
-				const month = date.getMonth() + 1;
-				const day = date.getDate();
-				this.date = `${year}-${month<10?'0':''}${month}-${day<10?'0':''}${day}`;
-			},
 			getData: async function() {
-				console.log(this.finished);
-				this.finished && clearInterval(timer);
-				const db = uniCloud.database();
-				const { result } = await db.collection('nba_match_list').where('date == "'+this.date+'" && cid == "100000"').get();
-				console.log(result.data);
-				this.matches = result.data;
+				const {aliCloud, tcbCloud} = getApp().globalData;
+				const { result } = await tcbCloud.callFunction({
+					name: 'video',
+					data: {
+						// type: 'list',
+						wd: this.keyword,
+						pg: this.page,
+						t: this.tid,
+						h: 24,
+						// ids: '69346,48602'
+					}
+				});
+				// this.$refs.uWaterfall.clear();
+				this.status = result.length ? 'loadmore' : 'nomore';
+				this.list = this.page===1 ? [...result] : [...this.list, ...result];
+				console.log(this.page, this.list.length);
 			},
-			getTime: date => {
-				return date.split(' ')[1];
+			loading: async function() {
+				this.page++;
+				await this.getData();
 			},
-			live: (status, id) => {
-				console.log(status);
-				if(status === '2' || status === '3')	return;
+			play: function(id) {
+				getApp().globalData.videoInfo = this.list.find(item => item.vod_id===id);
 				uni.navigateTo({
-					url: '/pages/nba/live?id='+id
+					url: `/pages/video/living`
 				})
+			},
+			search: async function(val) {
+				this.keyword = val;
+				this.page = 1;
+				this.$refs.uWaterfall.clear();
+				await this.getData();
+			},
+			changeTab: function(index) {
+				this.tabIndex = index;
 			}
 		}
 	}
 </script>
 
 <style>
-	.match-body {font-family: "Helvetica Neue",Helvetica,STHeiTi Light,sans-serif;}
-	.match-title {
-		color: #9E9E9E;
-		font-size: 28rpx;
-		text-align: center;
+	page {
+		background-color: rgb(240, 240, 240);
+	}
+	.status_bar {
+		height: var(--status-bar-height);
 		width: 100%;
 	}
-	.match-team {text-align: center;color: #373A41;font-size: 32rpx;}
 	
-	.match-team-name {margin-top: 12rpx;}
-	
-	.match-team-stat {text-align: center; padding: 0 20rpx;}
-	
-	.match-team-goal {font-size: 40rpx; padding: 16rpx 0;}
+</style>
+<style lang="scss" scoped>
+	.item {
+		border-radius: 16rpx;
+		margin: 10rpx;
+		background-color: #ffffff;
+		padding: 16rpx;
+		position: relative;
+	}
+	.item-title {
+		width: 100%;
+		font-size: 30rpx;
+		margin-top: 10rpx;
+		color: $u-main-color;
+	}
+	.tag-banner {
+		position: absolute;
+		top: 24rpx;
+		right: 24rpx;
+		padding: 10rpx 16rpx;
+		z-index: 99;
+	}
+	.tag-update {
+		
+	}
 </style>

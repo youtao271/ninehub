@@ -1,8 +1,5 @@
 <template>
 	<view>
-		<!-- #ifdef H5 -->
-		<view class="jw-player" ref="video"></view>
-		<!-- #endif -->
 		<u-card v-for="(item, index) in matches" :key="index" :show-head="false">
 			<view class="match-body" slot="body">
 				<!-- <navigator :url="'/pages/play/play?id='+item.id">				 -->
@@ -60,10 +57,6 @@
 			await this.getData();
 		},
 		onShow() {
-			// #ifdef H5
-			console.log(jwplayer);
-			// #endif
-			
 			timer = setInterval(this.getData, 30000);
 			console.log(this.date);
 			// this.setDate(-1);
@@ -115,7 +108,6 @@
 </script>
 
 <style>
-	.jw-player {width: 750rpx;height: 424rpx;}
 	.match-body {font-family: "Helvetica Neue",Helvetica,STHeiTi Light,sans-serif;}
 	.match-title {
 		color: #9E9E9E;
