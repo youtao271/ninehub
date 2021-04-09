@@ -1,8 +1,11 @@
 <template>
 	<view>
 		<!-- <video id="myVideo" src="http://ivi.bupt.edu.cn/hls/cctv5phd.m3u8" @error="videoErrorCallback" controls /> -->
-		<video class="player" id="player" :src="videoUrl" @error="videoErrorCallback" autoplay />
-		
+		<!--<video class="player" id="player" :src="videoUrl" @error="videoErrorCallback" autoplay />-->
+    <view class="player_container">
+      <Player :file="videoUrl" :autoplay="true" :playnext="playnext" />
+    </view>
+
 		<view class="match-info">
 			<u-row>
 				<u-col style="text-align: center; padding: 6rpx;" span="3" v-for="(item, i) in list" :key="i">
@@ -14,16 +17,20 @@
 </template>
 
 <script>
+import Player from "../../components/Player";
 	export default {
 		data() {
 			return {
 				index: 0,
-				list: []
+				list: [],
+        title: ''
 			}
 		},
+    components: {Player},
 		onLoad({url}) {
 			const {vod_name, vod_play_url, vod_content} = getApp().globalData.videoInfo;
 			const m3u8 = vod_play_url.split('$$$')[1];
+			this.title = vod_name;
 			this.list = m3u8.split('#').map(item => {
 				const [title, url] = item.split('$');
 				return {title, url};
@@ -34,6 +41,7 @@
 		},
 		onShow() {
 			console.log('onShow');
+			this.setNavigation(this.list[this.index].title)
 		},
 		computed: {
 			videoUrl() {
@@ -47,18 +55,29 @@
 			},
 			changeUrl: function(index) {
 				this.index = index;
-			}
-
+        this.setNavigation()
+      },
+      setNavigation: function() {
+			  const title = this.title + '_' + this.list[this.index].title
+        uni.setNavigationBarTitle({ title });
+			},
+      playnext: function () {
+			  this.index++;
+			  this.setNavigation();
+      }
 		}
 	}
 </script>
 
-<style>
-.player {width: 750rpx;height: 424rpx;}
+<style lang="less">
+.player_container {
+  width: unit(750, rpx);
+  height: unit(424, rpx);
+}
 .match-info {
-	width: 750rpx;
-	padding: 24rpx 0;
-	margin: 24rpx 0;
+	width: unit(750, rpx);
+	padding: unit(24, rpx) 0;
+	margin: unit(24, rpx) 0;
 	background: #fff;
 }
 

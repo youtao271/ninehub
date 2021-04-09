@@ -1,18 +1,19 @@
 <template>
 	<view>
-		<!-- #ifdef H5 -->
-		<view class="player" ref="player"></view>
-		<!-- #endif -->
-		
-		<!-- #ifndef H5 -->
-		<!-- <video id="myVideo" src="http://ivi.bupt.edu.cn/hls/cctv5phd.m3u8" @error="videoErrorCallback" controls /> -->
-		<video class="player" id="player" :src="videoUrl" @error="videoErrorCallback" autoplay :showProgress="false" />
-		<!-- #endif -->
+		<u-sticky>
+			<!-- #ifdef H5 -->
+			<view class="player_container"></view>
+			<!-- #endif -->
+			
+			<!-- #ifndef H5 -->
+			<video class="player" id="player" :src="videoUrl" @error="videoErrorCallback" autoplay :showProgress="false" />
+			<!-- #endif -->
+		</u-sticky>
 		
 		<!-- 直播线路列表 -->
 		<view class="match-info">
 			<u-row>
-				<u-col style="text-align: center; padding: 6rpx;" span="3" v-for="(item, i) in videoList" :key="i">
+				<u-col class="url-item" span="3" v-for="(item, i) in videoList" :key="i">
 					<u-button @click="changeUrl(i)" size="mini" :type="index===i?'success':''">{{item.title}}</u-button>
 				</u-col>
 			</u-row>
@@ -59,130 +60,67 @@
 				</u-col>
 				<u-col span="8">
 					<u-row>
-						<u-col span="2">
-							<view>{{periodGoals.head&&periodGoals.head[0]}}</view>
-						</u-col>
-						<u-col span="2">
-							<view>{{periodGoals.head&&periodGoals.head[1]}}</view>
-						</u-col>
-						<u-col span="2">
-							<view>{{periodGoals.head&&periodGoals.head[2]}}</view>
-						</u-col>
-						<u-col span="2">
-							<view>{{periodGoals.head&&periodGoals.head[3]}}</view>
-						</u-col>
-						<u-col span="4" text-align="center">
-							<view>{{periodGoals.head&&periodGoals.head[4]}}</view>
+						<u-col span="2" v-for="(item, i) in (periodGoals.head||[])" :key="i">
+							<view>{{item}}</view>
 						</u-col>
 					</u-row>
 				</u-col>
 			</u-row>
-			<u-row class="quarter-item">
+			<u-row class="quarter-item" v-for="(row, index) in (periodGoals.rows||[])" :key="index">
 				<u-col span="4">
 					<u-row>
 						<u-col span="4">
-							<u-image mode="aspectFit" width="100%" height="52" :src="teamInfo.leftBadge"></u-image>
+							<u-image mode="aspectFit" width="100%" height="52" :src="index ? teamInfo.rightBadge : teamInfo.leftBadge"></u-image>
 						</u-col>
 						<u-col span="8">
-							<text class="match-team-name">{{teamInfo.leftName}}</text>
+							<text class="match-team-name">{{index ? teamInfo.rightName : teamInfo.leftName}}</text>
 						</u-col>
 					</u-row>
 				</u-col>
 				<u-col span="8">
 					<u-row>
-						<u-col span="2">
-							<view>{{periodGoals.rows&&periodGoals.rows[0][1]}}</view>
-						</u-col>
-						<u-col span="2">
-							<view>{{periodGoals.rows&&periodGoals.rows[0][2]}}</view>
-						</u-col>
-						<u-col span="2">
-							<view>{{periodGoals.rows&&periodGoals.rows[0][3]}}</view>
-						</u-col>
-						<u-col span="2">
-							<view>{{periodGoals.rows&&periodGoals.rows[0][4]}}</view>
-						</u-col>
-						<u-col span="4" text-align="center">
-							<view>{{periodGoals.rows&&periodGoals.rows[0][5]}}</view>
-						</u-col>
-					</u-row>
-				</u-col>
-			</u-row>
-			<u-row class="quarter-item">
-				<u-col span="4">
-					<u-row>
-						<u-col span="4">
-							<u-image mode="aspectFit" width="100%" height="52" :src="teamInfo.rightBadge"></u-image>
-						</u-col>
-						<u-col span="8">
-							<text class="match-team-name">{{teamInfo.rightName}}</text>
-						</u-col>
-					</u-row>
-				</u-col>
-				<u-col span="8">
-					<u-row>
-						<u-col span="2">
-							<view>{{periodGoals.rows&&periodGoals.rows[1][1]}}</view>
-						</u-col>
-						<u-col span="2">
-							<view>{{periodGoals.rows&&periodGoals.rows[1][2]}}</view>
-						</u-col>
-						<u-col span="2">
-							<view>{{periodGoals.rows&&periodGoals.rows[1][3]}}</view>
-						</u-col>
-						<u-col span="2">
-							<view>{{periodGoals.rows&&periodGoals.rows[1][4]}}</view>
-						</u-col>
-						<u-col span="4" text-align="center">
-							<view>{{periodGoals.rows&&periodGoals.rows[1][5]}}</view>
+						<u-col span="2" v-for="(item, col) in row" v-if="col > 0" :key="col">
+							<view>{{item}}</view>
 						</u-col>
 					</u-row>
 				</u-col>
 			</u-row>
 		</view>
-	
+
 		<!-- 技术统计 -->
-		<view class="match-info">
-			<view v-for="(item, i) in leftPlayers" :key="i">
-				<u-row v-if="i===0">
-					<u-col span="3">{{item['head'][0]}}</u-col>
-					<u-col span="9">
-						<u-row>
-							<u-col span="1" v-for="(itemCol, i) in parseData(item['head'])" :key="i">{{itemCol}}</u-col>
-						</u-row>
-					</u-col>
-				</u-row>
-				<u-row v-else>
-					<u-col span="3">{{item['row'][0]+' '+item['row'][1]}}</u-col>
-					<u-col span="9">
-						<u-row>
-							<u-col span="1" v-for="(itemCol, i) in parseData(item['row'], 1)" :key="i">{{itemCol}}</u-col>
-						</u-row>
-					</u-col>
-				</u-row>
-			</view>
-		</view>
-	
-		<!-- 技术统计 -->
-		<view class="match-info">
-			<view v-for="(item, i) in rightPlayers" :key="i">
-				<u-row v-if="i===0">
-					<u-col span="3">{{item['head'][0]}}</u-col>
-					<u-col span="9">
-						<u-row>
-							<u-col span="1" v-for="(itemCol, i) in parseData(item['head'])" :key="i">{{itemCol}}</u-col>
-						</u-row>
-					</u-col>
-				</u-row>
-				<u-row v-else>
-					<u-col span="3">{{item['row'][0]+' '+item['row'][1]}}</u-col>
-					<u-col span="9">
-						<u-row>
-							<u-col span="1" v-for="(itemCol, i) in parseData(item['row'], 1)" :key="i">{{itemCol}}</u-col>
-						</u-row>
-					</u-col>
-				</u-row>
-			</view>
+		<view class="match-info" v-for="(team, key) in playerStats" :key="key">
+      <view class="stat-fixed">
+        <view class="stat-head">
+          <view class="stat-row">
+            <text class="stat-col player-head-name">{{ getStatHeadFixed(key)[0] }}</text>
+            <text class="stat-col player-time">{{ getStatHeadFixed(key)[1] }}</text>
+            <text class="stat-col player-score">{{ getStatHeadFixed(key)[2] }}</text>
+          </view>
+        </view>
+        <view class="stat-body">
+          <view class="stat-row" v-for="(item, i) in getStatBody(key)" :key="i">
+            <text class="stat-col player-num u-line-1">{{ getStatBodyFixed(item)[0] }}</text>
+            <text class="stat-col player-body-name u-line-1">{{ getStatBodyFixed(item)[1] }}</text>
+            <text class="stat-col player-time u-line-1">{{ getStatBodyFixed(item)[2] }}</text>
+            <text class="stat-col player-score u-line-1">{{ getStatBodyFixed(item)[3] }}</text>
+          </view>
+        </view>
+      </view>
+
+      <scroll-view class="stat-scroll" scroll-x="true">
+        <view class="stat-head">
+          <view class="stat-row">
+            <text class="stat-col player-stat-item" v-for="(item, i) in getStatHeadScroll(key)" :key="i">{{ item }}</text>
+          </view>
+        </view>
+        <view class="stat-head">
+          <view class="stat-row" v-for="(row, r) in getStatBody(key)" :key="r">
+            <text class="stat-col player-stat-item" v-for="(item, i) in getStatBodyScroll(row)" :key="i">{{ item }}</text>
+          </view>
+        </view>
+      </scroll-view>
+
+      <view class="clearfix"></view>
 		</view>
 	</view>
 </template>
@@ -196,10 +134,14 @@
 				videoList: [],
 				teamInfo: [],
 				periodGoals: [],
+				playerStats: [],
 				leftPlayers: [],
 				rightPlayers: [],
-				matchType: 0
-			}
+				matchType: 0,
+				video: 'https://jpmedia.sinovision.net/video/2021/2/16/TDA_FEB_1000k.mp4',
+				// video3: 'https://cdnmedia1.sinovision.net/247A45/live/livestream.m3u8',
+        video3: 'http://ivi.bupt.edu.cn/hls/cctv3hd.m3u8'
+      }
 		},
 		async onLoad({id = 206937, mid }) {
 			this.id = id;
@@ -207,76 +149,24 @@
 			await this.loadData();
 		},
 		async onReady() {
+			const {tcbCloud} = getApp().globalData;
 			console.log('onReady');
-			const db = uniCloud.database(); //代码块为cdb
-			const { result } = await uniCloud.callFunction({
+			const db = tcbCloud.database(); //代码块为cdb
+			const { result: {url, title} } = await tcbCloud.callFunction({
 				name: 'get-live-url',
 				data: { id: this.id }
 			});
-			console.log(result);
-			this.videoList = result;
-			/* this.videoList = [
-				{
-					title: 'sinovision', 
-					url: 'https://jpts.sinovision.net/livestream.m3u8'
-				},
-				{
-					title: 'cctv5phd',
-					url: 'http://ivi.bupt.edu.cn/hls/cctv5phd.m3u8'
-				},
-				{
-					title: 'cctv6hd',
-					url: 'http://ivi.bupt.edu.cn/hls/cctv6hd.m3u8'
-				}
-			]; */
+			this.videoList = url;
+			this.setNavigation(title);
 			
 			// #ifndef H5
 			this.player = uni.createVideoContext('player');
 			// #endif
 
-			// #ifdef H5
-			const video = document.createElement('video-js');
-			video.id = 'player';
-			video.style = 'width: 100%; height: auto;';
-			video.controls = true;
-			video.setAttribute('playsinline', true) //IOS微信浏览器支持小窗内播放
-			video.setAttribute('webkit-playsinline', true) //这个bai属性是ios 10中设置可以让视频在小du窗内播放，也就是不是全zhi屏播放的video标签的一个属性
-			video.setAttribute('x5-video-player-type', 'h5') //安卓 声明启用同层H5播放器 可以在video上面加东西
-			const source = document.createElement('source');
-			console.log(this.index, this.videoUrl);
-			source.src = this.videoUrl;
-			source.type = 'application/x-mpegURL';
-			video.appendChild(source);
-			this.$refs.player.$el.appendChild(video);
-			this.player = videojs('player', {
-				poster: 'https://s.yun-live.com/images/20200715/902844b0f1215ff236ad6b1bd1683555.jpg', // 视频封面图地址
-				title:'12334567788999900',
-				playbackRates: [0.5, 1.0, 1.25, 1.5, 2.0, 3.0], //播放速度
-				autoDisable: true,
-				preload: 'auto', //auto - 当页面加载后载入整个视频 meta - 当页面加载后只载入元数据 none - 当页面加载后不载入视频
-				language: 'zh-CN',
-				fluid: false, // 自适应宽高
-				muted: true, //  是否静音
-				aspectRatio: '16:9', // 将播放器置于流畅模式，并在计算播放器的动态大小时使用该值。值应该代表一个比例 - 用冒号分隔的两个数字（例如"16:9"或"4:3"）
-				controls: true, //是否拥有控制条 【默认true】,如果设为false ,那么只能通过api进行控制了。也就是说界面上不会出现任何控制按钮
-				autoplay: 'muted', //如果true,浏览器准备好时开始回放。 autoplay: "muted", // //自动播放属性,muted:静音播放
-				loop: false, // 导致视频一结束就重新开始。 视频播放结束后，是否循环播放
-				// techOrder: ["html5"], //播放顺序
-				screenshot:true,
-				controlBar: {
-					volumePanel: { //声音样式
-						inline: true // 不使用水平方式
-					},
-					timeDivider: true, // 时间分割线
-					durationDisplay: true, // 总时间
-					progressControl: true, // 进度条
-					remainingTimeDisplay: true, //当前已播放时间
-					fullscreenToggle: true, //全屏按钮
-					pictureInPictureToggle: true, //画中画
-				}
-			});
-			// #endif
-			
+      // #ifdef H5
+      await this.createPlayer();
+      // #endif
+
 		},
 		onShow() {
 			console.log('onShow');
@@ -287,21 +177,47 @@
 			clearInterval(timer);
 			this.player.pause();
 		},
+		onUnload() {
+			clearInterval(timer);
+		},
 		computed: {
 			videoUrl() {
+			  // return this.video3;
 				return this.videoList[this.index] && this.videoList[this.index]['url'] || '';
 			}
 		},
 		methods: {
+		  async createPlayer() {
+        if(!jwplayer.key) jwplayer.key = await this.getJwkey();
+		    const player = document.createElement('div');
+		    player.id = player.class = 'player';
+		    document.querySelector('.player_container').appendChild(player);
+        this.player = jwplayer(player).setup({
+          file: this.videoUrl,
+          autostart: true,
+          width: '100%',
+          height: 'auto',
+          aspectratio: '16:9'
+        });
+      },
+      getJwkey: async () => {
+        const {jwkey, tcbCloud} = getApp().globalData;
+        if (jwkey) return jwkey;
+        const {result} = await tcbCloud.callFunction({
+          name: 'jwkey'
+        });
+        getApp().globalData.jwkey = result;
+        return result;
+      },
 			videoErrorCallback: function(e) {
 				console.log('视频错误信息:')
 				console.log(e)
 			},
 			changeUrl: function(index) {
 				this.index = index;
-				
+        console.log(this.videoUrl);
 				// #ifdef H5
-				this.player.src({ src: this.videoUrl });
+				this.player.load([{ file: this.videoUrl }]).play();
 				// #endif
 			},
 			parseData: function(data, flag=0) {
@@ -309,40 +225,67 @@
 				return data.slice(flag+1);
 			},
 			loadData: async function() {
-				const db = uniCloud.database(); //代码块为cdb
+				const {tcbCloud} = getApp().globalData;
+				const db = tcbCloud.database(); //代码块为cdb
 				const {
 					result: {teamInfo, periodGoals, maxPlayers, teamStats, playerStats, matchType}
-				} = await uniCloud.callFunction({
+				} = await tcbCloud.callFunction({
 					name: 'matchstat',
 					data: {
 						mid: this.mid
 					}
 				});
-				console.log(playerStats.left);
-				this.setNavigation(teamInfo.leftName + ' VS ' + teamInfo.rightName)
+				console.log(playerStats, this.mid);
 				// this.matchstat = result;
 				this.teamInfo = teamInfo;
 				this.periodGoals = periodGoals;
+				this.playerStats = playerStats;
 				this.leftPlayers = playerStats.left;
 				this.rightPlayers = playerStats.right;
 				this.matchType = matchType;
 			},
 			setNavigation: function(title) {
 				uni.setNavigationBarTitle({ title });
-			}
+			},
+      parseName: function (num, name) {
+        num = (num.length < 2 ? '0' : '') + num;
+        return num + ' ' + name;
+      },
+      getStatHeadFixed(index) {
+        return this.playerStats[index][0]['head'].filter((item, i) => i < 3);
+      },
+      getStatHeadScroll(index) {
+        return this.playerStats[index][0]['head'].filter((item, i) => i > 2);
+      },
+      getStatBody(index) {
+        return this.playerStats[index].filter((item, i) => i > 0);
+      },
+      getStatBodyFixed(data) {
+        return data['row'].filter((item, i) => i < 4);
+      },
+      getStatBodyScroll(data) {
+        return data['row'].filter((item, i) => i > 3);
+      }
 
-		}
+    }
 	}
 </script>
 
-<style>
+<style lang="less">
 	page {
 		background: #f4f5f7;
 	}
-	
+	.clearfix {
+    clear: both;
+  }
+	.player_container {
+		width: unit(750, rpx);
+		height: unit(424, rpx);
+	}
+
 	.player {
-		width: 750rpx;
-		height: 424rpx;
+		width: 100%;
+		height: 100%;
 	}
 
 	.button-group {
@@ -350,18 +293,74 @@
 	}
 	
 	.match-info {
-		width: 750rpx;
-		padding: 24rpx 0;
-		margin: 24rpx 0;
+		width: unit(750, rpx);
+		padding: unit(24, rpx) 0;
+		margin: unit(24, rpx) 0;
 		background: #fff;
 	}
 	.table-title {
 		color: #969ba3;
 	}
 	.quarter-item {
-		height: 80rpx;
+		height: unit(80, rpx);
 	}
 	.quarter-item-title {
-		padding-left: 24rpx;
+		padding-left: unit(24, rpx);
 	}
+  
+  .url-item {
+    text-align: center; 
+    padding: unit(6, rpx);
+  }
+
+  // 技术统计
+  .stat-fixed {
+    float: left;
+    width: unit(360, rpx);
+    border-right: 1px solid #afafaf;
+  }
+  .stat-scroll {
+    float: left;
+    width: unit(390, rpx);
+    white-space: nowrap;
+  }
+  .stat-head {
+
+  }
+  .stat-body {
+
+  }
+  .stat-row {
+    height: unit(60, rpx);
+    line-height: unit(60, rpx);
+  }
+  .stat-col {
+    display: inline-block;
+    text-align: center;
+    font-size: unit(24, rpx);
+    color: rgba(0, 0, 0, .8);
+    padding: unit(8, rpx);
+  }
+  .player-num {
+    width: unit(42, rpx);
+    text-align: left;
+    padding-right: 0;
+  }
+  .player-head-name {
+    width: unit(231, rpx);
+    text-align: left;
+  }
+  .player-body-name {
+    width: unit(189, rpx);
+    text-align: left;
+  }
+  .player-time {
+    width: unit(64, rpx);
+  }
+  .player-score {
+    width: unit(64, rpx);
+  }
+  .player-stat-item {
+    width: unit(70, rpx);
+  }
 </style>

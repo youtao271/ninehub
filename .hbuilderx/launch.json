@@ -10,6 +10,7 @@
      	{
      		"launchtype" : "remote"
      	},
+     	"provider" : "tcb",
      	"type" : "uniCloud"
      }
     ]

@@ -38,7 +38,7 @@
 			}
 		},
 		{
-			"path": "pages/video/living",
+			"path": "pages/video/play",
 			"style": {
 				"enablePullDownRefresh": true
 			}
@@ -62,7 +62,7 @@
 				"text": "首页"
 			},
 			{
-				"pagePath": "pages/nba/index",
+				"pagePath": "pages/video/index",
 				"iconPath": "static/uview/example/js.png",
 				"selectedIconPath": "static/uview/example/js_select.png",
 				"text": "视频"

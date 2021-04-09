@@ -85,9 +85,9 @@
 				this.date = `${year}-${month<10?'0':''}${month}-${day<10?'0':''}${day}`;
 			},
 			getData: async function() {
-				console.log(this.finished);
+				const {tcbCloud} = getApp().globalData;
 				this.finished && clearInterval(timer);
-				const db = uniCloud.database();
+				const db = tcbCloud.database();
 				const { result } = await db.collection('nba_match_list').where('date == "'+this.date+'" && cid == "100000"')
 				.orderBy('_id').get();
 				console.log(result.data);
