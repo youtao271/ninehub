@@ -42,6 +42,12 @@
 			"style": {
 				"enablePullDownRefresh": true
 			}
+		},
+		{
+			"path": "pages/video/living",
+			"style": {
+				"enablePullDownRefresh": true
+			}
 		}
 	],
 	"globalStyle": {

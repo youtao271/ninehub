@@ -14,7 +14,29 @@
 
 <script>
 export default {
-  props: ['file','image','showProgress', 'autoplay', 'playnext'],
+  // props: ['file','image','showProgress', 'autoplay', 'playnext'],
+  props: {
+    file: {
+      type: String,
+      default: ''
+    },
+    image: {
+      type: String,
+      default: ''
+    },
+    showProgress: {
+      type: Boolean,
+      default: true
+    },
+    autoplay: {
+      type: Boolean,
+      default: false
+    },
+    playnext: {
+      type: Function,
+      default: () => {}
+    },
+  },
   data() {
     return {};
   },
