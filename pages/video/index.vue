@@ -3,9 +3,9 @@
     <view class="status_bar" />
     <u-tabs :list="tabs" :current="tabIndex" @change="changeTab" />
     <u-search
+        class="search-form"
         placeholder="请输入关键词"
         v-model="keyword"
-        margin="12rpx 20rpx 4rpx"
         bg-color="#ffffff"
         :action-style="{color: '#409eff'}"
         @custom="search"
@@ -54,13 +54,13 @@ export default {
       list: [],
       tabs: [
         {name: '最新'},
-        {name: '电影'},
-        {name: '电视剧'},
-        {name: '动漫'},
-        {name: '综艺'}
+        {name: '电影', tid: 2},
+        {name: '电视剧', tid: 3},
+        {name: '动漫', tid: 4},
+        {name: '综艺', tid: 5},
+        {name: '采集'}
       ],
-      tabIndex: 0,
-      aliCloud: null
+      tabIndex: 0
     }
   },
   async onLoad() {
@@ -99,7 +99,6 @@ export default {
           // ids: '69346,48602'
         }
       });
-      // this.$refs.uWaterfall.clear();
       this.status = result.length ? 'loadmore' : 'nomore';
       this.list = this.page===1 ? [...result] : [...this.list, ...result];
       console.log(this.page, this.list.length);
@@ -122,12 +121,85 @@ export default {
     },
     changeTab: function(index) {
       this.tabIndex = index;
+      this.tid = this.tabs[index].tid;
+    },
+    parseUrl: data => {
+      return data.split('$$$')[1];
+    },
+    collect: async function () {
+      const {aliCloud} = getApp().globalData;
+      const videos = aliCloud.database().collection('videos');
+      console.log('collect');
+      // const {result: {updated}} = await videos.where("id > 0").update({source: 'kb'});
+      // console.log(updated);
+      // return;
+      let pg = 1360, data = await this.getList(pg);
+      while (data.length) {
+        const addDatas = [];
+        for (const item of data) {
+          const {
+            vod_id: id, type_id, type_id_1, vod_name, vod_en, vod_status, vod_letter, vod_pic, vod_actor,
+            vod_director, vod_blurb, vod_remarks, vod_serial, vod_area, vod_lang, vod_year, vod_time, vod_time_add,
+            vod_content, vod_play_from, vod_play_url, vod_down_from, vod_down_url, type_name
+          } = item;
+
+          const img = vod_pic;//await getImage(id, vod_pic);
+          const videoInfo = {
+            tid: type_id, pid: type_id_1, name: vod_name, name_en: vod_en, status: vod_status, letter: vod_letter,
+            img, actor: vod_actor, director: vod_director, blurb: vod_blurb, remarks: vod_remarks,
+            serial: vod_serial, area: vod_area, lang: vod_lang, year: vod_year, time: vod_time, add_time: vod_time_add,
+            content: vod_content, play_from: this.parseUrl(vod_play_from), play_url: this.parseUrl(vod_play_url), down_from: vod_down_from,
+            down_url: vod_down_url, type_name, source: 'bd'
+          }
+          const {result: {data: info}} = await videos.where(`id == ${id}`).get({getOne: true});
+          if(info) {
+            const {result: {updated}} = await videos.where({id}).update(videoInfo);
+            console.log('update:' + pg + '---' + updated);
+          } else {
+            addDatas.push({...videoInfo, id})
+          }
+        }
+        if(addDatas.length) {
+          const {result: {inserted}} = await videos.add(addDatas);
+          console.log('insert:' + pg + '---' + inserted);
+        }
+        // break;
+        data = await this.getList(++pg);
+      }
+      // console.log(info);
+      // console.log(videoInfo);
+
+    },
+    getList: async function(pg) {
+      const {aliCloud} = getApp().globalData;
+      try {
+        const { result } = await aliCloud.callFunction({
+          name: 'collect_video',
+          data: { pg }
+        });
+        return result;
+      } catch (e) {
+        console.log('请求超时');
+        return await this.getList(pg);
+      }
+    }
+  },
+  watch: {
+    tabIndex: async function(value) {
+      if(value === 5) {
+        await this.collect();
+        return;
+      }
+      this.keyword = '';
+      this.page = 1;
+      this.$refs.uWaterfall.clear();
+      await this.getData();
     }
   }
 }
 </script>
 
-<style>
+<style lang="less" scoped>
 page {
   background-color: rgb(240, 240, 240);
 }
@@ -135,27 +207,28 @@ page {
   height: var(--status-bar-height);
   width: 100%;
 }
+.search-form {
+  margin: unit(12, rpx) unit(20, rpx) unit(4, rpx);
 
-</style>
-<style lang="scss" scoped>
+}
 .item {
-  border-radius: 16rpx;
-  margin: 10rpx;
+  border-radius: unit(16, rpx);
+  margin: unit(10, rpx);
   background-color: #ffffff;
-  padding: 16rpx;
+  padding: unit(16, rpx);
   position: relative;
 }
 .item-title {
   width: 100%;
-  font-size: 30rpx;
-  margin-top: 10rpx;
-  color: $u-main-color;
+  font-size: unit(30, rpx);
+  margin-top: unit(10, rpx);
+  //color: $u-main-color;
 }
 .tag-banner {
   position: absolute;
-  top: 24rpx;
-  right: 24rpx;
-  padding: 10rpx 16rpx;
+  top: unit(24, rpx);
+  right: unit(24, rpx);
+  padding: unit(10, rpx) unit(16, rpx);
   z-index: 99;
 }
 .tag-update {
