@@ -35,8 +35,8 @@
 		},
 		methods: {
 			loadData: async function(id) {
-				const db = uniCloud.database(); //代码块为cdb
-				const { result } = await uniCloud.callFunction({
+        const {tcbCloud} = getApp().globalData;
+				const { result } = await tcbCloud.callFunction({
 					name: 'livestream',
 					data: {id}
 				});

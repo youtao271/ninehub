@@ -45,8 +45,8 @@ export default {
 	},
 	methods: {
 		loadData: async function() {
-			const db = uniCloud.database(); //代码块为cdb
-			const { result } = await uniCloud.callFunction({
+      const {tcbCloud} = getApp().globalData;
+			const { result } = await tcbCloud.callFunction({
 				name: 'livestream'
 			});
 			this.plateList = result;
